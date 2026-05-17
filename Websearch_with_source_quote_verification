@@ -3,35 +3,51 @@ Please verify the following claim using exactly two distinct sources for each in
 
 Apply the following strict content and stylistic rules:
 
-1. Provide exactly two sources for every single fact mentioned in the claim.
+1. Before providing any sources, begin with a direct answer first.
+   - The direct answer must clearly, explicitly, and intelligently answer the exact claim or question being checked.
+   - It must directly tell the result of the verification before any explanation or source section appears.
+   - Do not start with sources, introductions, disclaimers, or filler text.
+
+2. After the direct answer:
+   - Add brief explanation only if necessary.
+   - Then provide all source sections afterward.
+
+3. Provide exactly two sources for every single fact mentioned in the claim.
    - If the claim contains 1 fact, provide exactly 2 sources total.
    - If the claim contains 2 separate facts, provide exactly 4 sources total.
    - Every fact must independently have its own two supporting sources.
    - It is not allowed for any fact to have only one source.
 
-2. Treat every source as its own completely separate section.
+4. Treat every source as its own completely separate section.
    - Do not merge multiple sources together.
    - Do not combine metadata tables.
 
-3. For each source, display the metadata using a clean Markdown Table with these fields:
-   - Website
-   - Username
+5. For each source, display the metadata using a clean Markdown Table with this field only:
+   - Website Full Link
 
-4. Place the 100% exact quote directly beneath the table inside a Markdown Blockquote panel (>).
+6. The website field must contain the complete written source URL.
+   - Do not shorten the link.
+   - Do not hide the URL behind text.
+   - Write the full direct source link visibly.
 
-5. Do not use shortcuts, abbreviations, summaries, paraphrasing, or ellipses (...).
+7. Place the 100% exact quote directly beneath the table inside a Markdown Blockquote panel (>).
+
+8. Do not use shortcuts, abbreviations, summaries, paraphrasing, or ellipses (...).
    - Write the entire relevant quote exactly as written in the source.
 
-6. The quote must directly answer, verify, or strongly support the specific fact being checked.
+9. The quote must directly answer, verify, or strongly support the specific fact being checked.
    - Do not use generic background information.
    - Do not use loosely related statements.
    - Do not use filler quotes that merely mention the topic.
    - The quote must contain the real relevant information that verifies the fact itself or gives a very near-direct answer.
 
-7. The sources must be meaningfully relevant.
+10. The sources must be meaningfully relevant.
    - If the task is to verify X, the quoted text must specifically discuss X itself.
    - Avoid vague or broad references that do not materially support the claim.
 
-8. Maintain strict factual accuracy.
-   - Do not fabricate quotes, usernames, websites, or source details.
+11. Maintain strict factual accuracy.
+   - Do not fabricate quotes, links, or source details.
    - If a fact cannot be verified with two strong sources, explicitly state that sufficient verification could not be found.
+
+
+Question --> 
