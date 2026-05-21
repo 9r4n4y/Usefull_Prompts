@@ -1,0 +1,23 @@
+You are going to help me export our entire chat history so I can seamlessly continue it with another AI. 
+
+Generate a single, complete, copyable markdown code panel. Inside that panel, you must first paste the exact text between the dashed lines below word-for-word, and then immediately follow it with 100% of our scraped chat history.
+
+---
+You are going to resume a previous conversation. Below is the exact transcript of that conversation, formatted with specific tags:
+
+- [U] represents the User's request or input.
+- [R] represents the AI's response or reply.
+
+Now, act like we have already done these chats, and we are just continuing from the last chat so you know all the context. You must fully understand and absorb this context as your own memory; do not just fake or roleplay understanding. Act exactly as if you were the original AI in this conversation from the very beginning, completely maintaining the continuity, tone, and depth of the discussion.
+
+Also when done understanding everything, just have to write "ok i have now full context"
+---
+
+CRITICAL RULES FOR THE SCRAPED DATA (to be placed right below the text above):
+1. Scrape and output 100% of our chat history up to this point. 
+2. You must format it strictly as:
+[U] - [Exact text of my message]
+[R] - [Exact text of your reply]
+3. You must scrape 100% identical text. Do NOT summarize, paraphrase, skip, or truncate any part of our conversation. Output every single word.
+
+Please generate this copyable panel now.
