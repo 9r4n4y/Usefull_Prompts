@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Comic Manager</title>
+    <style>
+        :root {
+            --bg-base: #141414;
+            --bg-surface: #181818;
+            --accent: #e50914;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --border: #282828;
+            --font-stack: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            overflow-x: hidden;
+        }
+
+        /* Sticky Headroom Bar */
+        #headroom-bar {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background-color: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .header-logo svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--accent);
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 12px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-container svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-muted);
+            margin-right: 8px;
+        }
+
+        .search-container input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, .btn {
+            background-color: var(--bg-surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--border);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Multi-Select Drawer Panel */
+        #drawer-panel {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            max-height: 0;
+        }
+
+        #drawer-panel.open {
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .layer-row {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .layer-row:last-child {
+            border-bottom: none;
+        }
+
+        .layer-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .layer-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Main Content Matrix */
+        #main-matrix {
+            padding: 24px;
+        }
+
+        .universe-section {
+            margin-bottom: 48px;
+        }
+
+        .universe-header {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .branch-group {
+            margin-bottom: 32px;
+        }
+
+        .branch-header {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .branch-header svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--text-muted);
+        }
+
+        /* Category Sliders */
+        .slider-rail {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .slider-rail::-webkit-scrollbar {
+            display: none;
+        }
+
+        .comic-card {
+            flex: 0 0 auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .comic-card:hover {
+            transform: scale(1.02);
+        }
+
+        .comic-title {
+            margin-top: 8px;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Preview Configurations */
+        .preview-1-page {
+            width: 200px;
+            height: 280px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .preview-1-page img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-filmstrip {
+            display: flex;
+            height: 140px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .preview-filmstrip img {
+            width: 100px;
+            height: 140px;
+            object-fit: cover;
+            border-right: 1px solid var(--bg-base);
+        }
+
+        .preview-filmstrip img:last-child {
+            border-right: none;
+        }
+
+        /* Reader Modal */
+        #reader-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+
+        #reader-modal.active {
+            display: flex;
+        }
+
+        .reader-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1010;
+            pointer-events: none;
+        }
+
+        .reader-controls > * {
+            pointer-events: auto;
+        }
+
+        .reader-nav {
+            display: flex;
+            gap: 16px;
+        }
+
+        .reader-btn {
+            background-color: rgba(24, 24, 24, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(4px);
+        }
+
+        .reader-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .reader-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .reader-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .reader-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Loading State */
+        #loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="headroom-bar">
+        <div class="header-left">
+            <div class="header-logo">
+                <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM10 9h8v2h-8zm0 3h4v2h-4zm0-6h8v2h-8z"/></svg>
+            </div>
+            <div class="search-container">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="search-input" placeholder="Search paths, titles, categories...">
+            </div>
+        </div>
+        <div class="header-controls">
+            <div class="control-group">
+                <label for="preview-count">Previews</label>
+                <select id="preview-count">
+                    <option value="1">1 Page</option>
+                    <option value="2">2 Pages</option>
+                    <option value="3">3 Pages</option>
+                    <option value="4">4 Pages</option>
+                    <option value="5">5 Pages</option>
+                    <option value="6">6 Pages</option>
+                    <option value="7">7 Pages</option>
+                    <option value="8">8 Pages</option>
+                </select>
+            </div>
+            <button class="btn" id="drawer-toggle">
+                <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+                Filters
+            </button>
+        </div>
+    </header>
+
+    <div id="drawer-panel"></div>
+
+    <main id="main-matrix"></main>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <div id="loader-text">Scanning ./content/ directory...</div>
+    </div>
+
+    <div id="reader-modal">
+        <div class="reader-controls">
+            <button class="reader-btn" id="reader-close">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                Close
+            </button>
+            <div class="reader-nav">
+                <button class="reader-btn" id="reader-prev">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    Previous
+                </button>
+                <button class="reader-btn" id="reader-next">
+                    Next
+                    <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="reader-content" id="reader-content"></div>
+    </div>
+
+    <script>
+        const DOM_ELEMENTS = {
+            matrix: document.getElementById('main-matrix'),
+            drawer: document.getElementById('drawer-panel'),
+            search: document.getElementById('search-input'),
+            previewSelect: document.getElementById('preview-count'),
+            drawerToggle: document.getElementById('drawer-toggle'),
+            loader: document.getElementById('loader'),
+            loaderText: document.getElementById('loader-text'),
+            modal: document.getElementById('reader-modal'),
+            modalContent: document.getElementById('reader-content'),
+            modalClose: document.getElementById('reader-close'),
+            modalPrev: document.getElementById('reader-prev'),
+            modalNext: document.getElementById('reader-next')
+        };
+
+        const STATE = {
+            globalCatalog: [],
+            filteredCatalog: [],
+            activeFilters: [], 
+            previewCount: 1,
+            maxDepth: 0,
+            searchQuery: '',
+            currentReaderIndex: -1
+        };
+
+        async function init() {
+            await crawlDirectory('./content/', []);
+            
+            STATE.globalCatalog.sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true, sensitivity: "base" }));
+            
+            STATE.globalCatalog.forEach(item => {
+                if (item.segments.length > STATE.maxDepth) {
+                    STATE.maxDepth = item.segments.length;
+                }
+            });
+
+            for (let i = 0; i < STATE.maxDepth; i++) {
+                STATE.activeFilters.push(new Set());
+            }
+
+            DOM_ELEMENTS.loader.style.display = 'none';
+            
+            setupEventListeners();
+            renderDrawer();
+            applyFiltersAndRender();
+        }
+
+        async function crawlDirectory(url, segments) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return;
+                
+                const text = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const links = Array.from(doc.querySelectorAll('a'));
+
+                const folders = [];
+                const images = [];
+
+                for (const link of links) {
+                    const href = link.getAttribute('href');
+                    if (!href || href === '../' || href.startsWith('/')) continue;
+                    
+                    if (href.endsWith('/')) {
+                        folders.push(href);
+                    } else if (/\.(jpg|jpeg|png|webp|gif)$/i.test(href)) {
+                        images.push(url + href);
+                    }
+                }
+
+                if (images.length > 0) {
+                    images.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+                    STATE.globalCatalog.push({
+                        name: segments[segments.length - 1] || 'Root',
+                        path: url,
+                        universe: segments[0] || 'Uncategorized',
+                        segments: segments,
+                        images: images
+                    });
+                    DOM_ELEMENTS.loaderText.textContent = `Scanned: ${url}`;
+                }
+
+                for (const f of folders) {
+                    await crawlDirectory(url + f, [...segments, decodeURIComponent(f.replace(/\/$/, ''))]);
+                }
+            } catch (e) {
+                console.error("Fetch error at " + url, e);
+            }
+        }
+
+        function setupEventListeners() {
+            DOM_ELEMENTS.drawerToggle.addEventListener('click', () => {
+                DOM_ELEMENTS.drawer.classList.toggle('open');
+            });
+
+            DOM_ELEMENTS.search.addEventListener('input', (e) => {
+                STATE.searchQuery = e.target.value.toLowerCase();
+                applyFiltersAndRender();
+            });
+
+            DOM_ELEMENTS.previewSelect.addEventListener('change', (e) => {
+                STATE.previewCount = parseInt(e.target.value, 10);
+                applyFiltersAndRender();
+            });
+
+            DOM_ELEMENTS.modalClose.addEventListener('click', closeModal);
+            DOM_ELEMENTS.modalPrev.addEventListener('click', () => stepReader(-1));
+            DOM_ELEMENTS.modalNext.addEventListener('click', () => stepReader(1));
+        }
+
+        function renderDrawer() {
+            DOM_ELEMENTS.drawer.innerHTML = '';
+            
+            let possibleItems = STATE.globalCatalog;
+
+            for (let layer = 0; layer < STATE.maxDepth - 1; layer++) {
+                const uniqueValues = new Set();
+                
+                possibleItems.forEach(item => {
+                    if (item.segments.length > layer) {
+                        uniqueValues.add(item.segments[layer]);
+                    }
+                });
+
+                if (uniqueValues.size === 0) continue;
+
+                const row = document.createElement('div');
+                row.className = 'layer-row';
+                
+                const title = document.createElement('div');
+                title.className = 'layer-title';
+                title.textContent = `Layer ${layer}: ` + (layer === 0 ? 'Universes' : `Sub-Level ${layer}`);
+                row.appendChild(title);
+
+                const chips = document.createElement('div');
+                chips.className = 'layer-chips';
+
+                Array.from(uniqueValues).sort().forEach(val => {
+                    const chip = document.createElement('div');
+                    chip.className = 'chip';
+                    if (STATE.activeFilters[layer].has(val)) {
+                        chip.classList.add('active');
+                    }
+                    chip.textContent = val;
+                    chip.onclick = () => handleFilterToggle(layer, val);
+                    chips.appendChild(chip);
+                });
+
+                row.appendChild(chips);
+                DOM_ELEMENTS.drawer.appendChild(row);
+
+                if (STATE.activeFilters[layer].size > 0) {
+                    possibleItems = possibleItems.filter(item => STATE.activeFilters[layer].has(item.segments[layer]));
+                }
+            }
+        }
+
+        function handleFilterToggle(layer, value) {
+            if (STATE.activeFilters[layer].has(value)) {
+                STATE.activeFilters[layer].delete(value);
+            } else {
+                STATE.activeFilters[layer].add(value);
+            }
+
+            for (let i = layer + 1; i < STATE.maxDepth; i++) {
+                STATE.activeFilters[i].clear();
+            }
+
+            renderDrawer();
+            applyFiltersAndRender();
+        }
+
+        function applyFiltersAndRender() {
+            STATE.filteredCatalog = STATE.globalCatalog.filter(item => {
+                const pathStr = item.path.toLowerCase();
+                if (STATE.searchQuery && !pathStr.includes(STATE.searchQuery)) {
+                    return false;
+                }
+                for (let i = 0; i < STATE.maxDepth; i++) {
+                    if (STATE.activeFilters[i].size > 0) {
+                        if (!item.segments[i] || !STATE.activeFilters[i].has(item.segments[i])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
+
+            renderMatrix();
+        }
+
+        function renderMatrix() {
+            DOM_ELEMENTS.matrix.innerHTML = '';
+            
+            const grouped = {};
+            STATE.filteredCatalog.forEach((item, index) => {
+                const uni = item.universe;
+                const branchPath = item.segments.length > 2 ? item.segments.slice(1, -1).join(' › ') : 'Main';
+                
+                if (!grouped[uni]) grouped[uni] = {};
+                if (!grouped[uni][branchPath]) grouped[uni][branchPath] = [];
+                
+                grouped[uni][branchPath].push({ ...item, filteredIndex: index });
+            });
+
+            Object.keys(grouped).sort().forEach(uni => {
+                const uniSection = document.createElement('div');
+                uniSection.className = 'universe-section';
+                
+                const uniHeader = document.createElement('div');
+                uniHeader.className = 'universe-header';
+                uniHeader.textContent = uni;
+                uniSection.appendChild(uniHeader);
+
+                Object.keys(grouped[uni]).sort().forEach(branch => {
+                    const branchGrp = document.createElement('div');
+                    branchGrp.className = 'branch-group';
+                    
+                    if (branch !== 'Main') {
+                        const bHeader = document.createElement('div');
+                        bHeader.className = 'branch-header';
+                        bHeader.innerHTML = `<svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg> ${branch}`;
+                        branchGrp.appendChild(bHeader);
+                    }
+
+                    const rail = document.createElement('div');
+                    rail.className = 'slider-rail';
+
+                    grouped[uni][branch].forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'comic-card';
+                        card.onclick = () => openModal(item.filteredIndex);
+
+                        const isFilmstrip = STATE.previewCount > 1;
+                        const containerClass = isFilmstrip ? 'preview-filmstrip' : 'preview-1-page';
+                        const displayImages = item.images.slice(0, STATE.previewCount);
+
+                        const imgHtml = displayImages.map(src => `<img src="${src}" loading="lazy">`).join('');
+                        
+                        card.innerHTML = `
+                            <div class="${containerClass}" ${isFilmstrip ? `style="width: ${STATE.previewCount * 100}px;"` : ''}>
+                                ${imgHtml}
+                            </div>
+                            <div class="comic-title" style="max-width: ${isFilmstrip ? STATE.previewCount * 100 : 200}px;">${item.name}</div>
+                        `;
+                        rail.appendChild(card);
+                    });
+
+                    branchGrp.appendChild(rail);
+                    uniSection.appendChild(branchGrp);
+                });
+
+                DOM_ELEMENTS.matrix.appendChild(uniSection);
+            });
+        }
+
+        function openModal(index) {
+            STATE.currentReaderIndex = index;
+            updateModalContent();
+            DOM_ELEMENTS.modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            DOM_ELEMENTS.modal.classList.remove('active');
+            document.body.style.overflow = '';
+            DOM_ELEMENTS.modalContent.innerHTML = '';
+        }
+
+        function stepReader(dir) {
+            const newIndex = STATE.currentReaderIndex + dir;
+            if (newIndex >= 0 && newIndex < STATE.filteredCatalog.length) {
+                STATE.currentReaderIndex = newIndex;
+                updateModalContent();
+            }
+        }
+
+        function updateModalContent() {
+            DOM_ELEMENTS.modalContent.innerHTML = '';
+            const item = STATE.filteredCatalog[STATE.currentReaderIndex];
+            
+            item.images.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.loading = 'lazy';
+                DOM_ELEMENTS.modalContent.appendChild(img);
+            });
+
+            DOM_ELEMENTS.modalContent.scrollTop = 0;
+            
+            DOM_ELEMENTS.modalPrev.style.visibility = STATE.currentReaderIndex > 0 ? 'visible' : 'hidden';
+            DOM_ELEMENTS.modalNext.style.visibility = STATE.currentReaderIndex < STATE.filteredCatalog.length - 1 ? 'visible' : 'hidden';
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
